@@ -148,3 +148,14 @@ func (c *Certificate) SetMetaValue(key string, value interface{}) {
 func (c *Certificate) ClearSensitiveData() {
 	c.CertificateKey = ""
 }
+
+// DomainTestResult represents individual domain test result
+type DomainTestResult struct {
+	Domain       string `json:"domain"`
+	Reachable    bool   `json:"reachable"`
+	SSL          bool   `json:"ssl"`
+	Port80       bool   `json:"port_80"`
+	Port443      bool   `json:"port_443"`
+	Message      string `json:"message"`
+	ResponseTime int64  `json:"response_time_ms"`
+}

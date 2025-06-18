@@ -98,27 +98,20 @@ func setupProxyHostRoutes(rg *gin.RouterGroup) {
 
 // setupCertificateRoutes sets up certificate management routes
 func setupCertificateRoutes(rg *gin.RouterGroup) {
-	// Certificate routes will be implemented later
+	// Note: For now we'll use nil service, should be properly injected in the main server setup
+	certificateController := controllers.NewCertificateController(nil)
+
 	certificates := rg.Group("/certificates")
 	{
-		certificates.GET("", func(c *gin.Context) {
-			c.JSON(200, gin.H{"message": "List certificates - to be implemented"})
-		})
-		certificates.POST("", func(c *gin.Context) {
-			c.JSON(200, gin.H{"message": "Create certificate - to be implemented"})
-		})
-		certificates.GET("/:id", func(c *gin.Context) {
-			c.JSON(200, gin.H{"message": "Get certificate - to be implemented"})
-		})
-		certificates.PUT("/:id", func(c *gin.Context) {
-			c.JSON(200, gin.H{"message": "Update certificate - to be implemented"})
-		})
-		certificates.DELETE("/:id", func(c *gin.Context) {
-			c.JSON(200, gin.H{"message": "Delete certificate - to be implemented"})
-		})
-		certificates.POST("/:id/renew", func(c *gin.Context) {
-			c.JSON(200, gin.H{"message": "Renew certificate - to be implemented"})
-		})
+		certificates.GET("", certificateController.ListCertificates)
+		certificates.POST("", certificateController.CreateCertificate)
+		certificates.GET("/expiring-soon", certificateController.GetExpiringSoon)
+		certificates.POST("/test", certificateController.TestCertificate)
+		certificates.GET("/:id", certificateController.GetCertificate)
+		certificates.PUT("/:id", certificateController.UpdateCertificate)
+		certificates.DELETE("/:id", certificateController.DeleteCertificate)
+		certificates.POST("/:id/upload", certificateController.UploadCertificate)
+		certificates.POST("/:id/renew", certificateController.RenewCertificate)
 	}
 }
 

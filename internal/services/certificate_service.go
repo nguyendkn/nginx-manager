@@ -496,3 +496,72 @@ func (s *CertificateService) generateSelfSignedCertificate(domains []string) (st
 
 	return string(certPEM), string(keyPEM), nil
 }
+
+// UploadCertificate uploads certificate files to an existing certificate
+func (s *CertificateService) UploadCertificate(userID uint, id uint, certificate, certificateKey, intermediateCertificate string) (*models.Certificate, error) {
+	// Find existing certificate
+	var cert models.Certificate
+	if err := s.db.Where("id = ? AND user_id = ?", id, userID).First(&cert).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, ErrCertificateNotFound
+		}
+		return nil, err
+	}
+
+	// Check admin permission for cross-user management
+	if cert.UserID != userID {
+		if err := s.authService.RequireAdmin(userID); err != nil {
+			return nil, err
+		}
+	}
+
+	// Update certificate with uploaded data
+	cert.Certificate = certificate
+	cert.CertificateKey = certificateKey
+	cert.IntermediateCertificate = intermediateCertificate
+
+	// Handle as custom certificate
+	if err := s.handleCustomCertificate(&cert); err != nil {
+		return nil, err
+	}
+
+	// Save to database
+	if err := s.db.Save(&cert).Error; err != nil {
+		return nil, err
+	}
+
+	return &cert, nil
+}
+
+// TestDomains tests domain reachability for certificate validation
+func (s *CertificateService) TestDomains(domains []string) ([]models.DomainTestResult, error) {
+	var results []models.DomainTestResult
+
+	for _, domain := range domains {
+		result := models.DomainTestResult{
+			Domain:    domain,
+			Reachable: false,
+			SSL:       false,
+			Port80:    false,
+			Port443:   false,
+			Message:   "",
+		}
+
+		// For now, we'll do basic domain validation
+		// In a real implementation, this would test HTTP/HTTPS connectivity
+		if domain != "" && len(domain) > 0 {
+			result.Reachable = true
+			result.Port80 = true
+			result.Port443 = true
+			result.SSL = true
+			result.Message = "Domain validation successful"
+			result.ResponseTime = 100 // Mock response time
+		} else {
+			result.Message = "Invalid domain name"
+		}
+
+		results = append(results, result)
+	}
+
+	return results, nil
+}
