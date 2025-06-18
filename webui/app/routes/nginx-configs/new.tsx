@@ -8,6 +8,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '~/com
 import { Input } from '~/components/ui/input'
 import { Label } from '~/components/ui/label'
 import { Textarea } from '~/components/ui/textarea'
+import ConfigEditor from '~/components/core/nginx-config-editor/ConfigEditor'
+import ConfigSnippets from '~/components/core/nginx-config-editor/ConfigSnippets'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '~/components/ui/select'
 import { Switch } from '~/components/ui/switch'
 import { Badge } from '~/components/ui/badge'
@@ -164,6 +166,12 @@ export default function NewNginxConfigPage() {
     }
   }
 
+  const handleInsertSnippet = (snippet: string) => {
+    const currentContent = watch('content') || ''
+    const newContent = currentContent + '\n\n' + snippet
+    setValue('content', newContent)
+  }
+
   const onSubmit = (data: ConfigFormData) => {
     const submitData: CreateConfigRequest = {
       ...data,
@@ -274,12 +282,19 @@ export default function NewNginxConfigPage() {
                   <TabsContent value="editor" className="space-y-4">
                     <div>
                       <Label htmlFor="content">Configuration Content *</Label>
-                      <Textarea
-                        id="content"
-                        {...register('content', { required: 'Configuration content is required' })}
-                        placeholder="Enter your nginx configuration..."
-                        className="min-h-[400px] font-mono text-sm"
-                      />
+                      <div className="mt-2">
+                        <ConfigEditor
+                          value={watchedContent || ''}
+                          onChange={(value) => setValue('content', value)}
+                          validation={validation}
+                          onValidate={validateConfig}
+                          readOnly={false}
+                          height="500px"
+                          showPreview={true}
+                          enableAutocompletion={true}
+                          theme="light"
+                        />
+                      </div>
                       {errors.content && (
                         <p className="text-sm text-destructive mt-1">{errors.content.message}</p>
                       )}
@@ -392,6 +407,9 @@ export default function NewNginxConfigPage() {
                 )}
               </CardContent>
             </Card>
+
+            {/* Configuration Snippets */}
+            <ConfigSnippets onInsert={handleInsertSnippet} />
 
             {/* Actions */}
             <Card>

@@ -8,6 +8,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '~/com
 import { Input } from '~/components/ui/input'
 import { Label } from '~/components/ui/label'
 import { Textarea } from '~/components/ui/textarea'
+import ConfigEditor from '~/components/core/nginx-config-editor/ConfigEditor'
+import ConfigSnippets from '~/components/core/nginx-config-editor/ConfigSnippets'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '~/components/ui/select'
 import { Switch } from '~/components/ui/switch'
 import { Badge } from '~/components/ui/badge'
@@ -174,6 +176,12 @@ export default function EditNginxConfigPage() {
   const handleLoadVersion = (version: ConfigVersion) => {
     setValue('content', version.content)
     setShowHistory(false)
+  }
+
+  const handleInsertSnippet = (snippet: string) => {
+    const currentContent = watch('content') || ''
+    const newContent = currentContent + '\n\n' + snippet
+    setValue('content', newContent)
   }
 
   if (isLoading) {
@@ -366,16 +374,26 @@ export default function EditNginxConfigPage() {
             <Card>
               <CardHeader>
                 <CardTitle>Configuration Content</CardTitle>
+                <CardDescription>
+                  Use the advanced editor with syntax highlighting, auto-completion, and real-time validation
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <div>
                   <Label htmlFor="content">Configuration Content *</Label>
-                  <Textarea
-                    id="content"
-                    {...register('content', { required: 'Configuration content is required' })}
-                    className="min-h-[400px] font-mono text-sm"
-                    disabled={config.is_read_only}
-                  />
+                  <div className="mt-2">
+                    <ConfigEditor
+                      value={watchedContent || ''}
+                      onChange={(value) => setValue('content', value)}
+                      validation={validation}
+                      onValidate={validateConfig}
+                      readOnly={config.is_read_only}
+                      height="500px"
+                      showPreview={true}
+                      enableAutocompletion={true}
+                      theme="light"
+                    />
+                  </div>
                   {errors.content && (
                     <p className="text-sm text-destructive mt-1">{errors.content.message}</p>
                   )}
@@ -481,6 +499,9 @@ export default function EditNginxConfigPage() {
                 </Button>
               </CardContent>
             </Card>
+
+            {/* Configuration Snippets */}
+            <ConfigSnippets onInsert={handleInsertSnippet} />
 
             {/* Configuration Info */}
             <Card>
