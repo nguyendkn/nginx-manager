@@ -22,6 +22,11 @@ func AllModels() []interface{} {
 		&models.AuditLog{},
 		&models.Token{},
 		&models.Setting{},
+		&models.NginxConfig{},
+		&models.ConfigVersion{},
+		&models.ConfigBackup{},
+		&models.ConfigTemplate{},
+		&models.ConfigApproval{},
 	}
 }
 

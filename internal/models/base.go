@@ -196,6 +196,8 @@ const (
 	ObjectTypeStream          ObjectType = "stream"
 	ObjectTypeDeadHost        ObjectType = "dead_host"
 	ObjectTypeSetting         ObjectType = "setting"
+	ObjectTypeNginxConfig     ObjectType = "nginx_config"
+	ObjectTypeConfigTemplate  ObjectType = "config_template"
 )
 
 // IsValid checks if the object type is valid
@@ -203,7 +205,8 @@ func (ot ObjectType) IsValid() bool {
 	switch ot {
 	case ObjectTypeUser, ObjectTypeProxyHost, ObjectTypeCertificate,
 		ObjectTypeAccessList, ObjectTypeRedirectionHost, ObjectTypeStream,
-		ObjectTypeDeadHost, ObjectTypeSetting:
+		ObjectTypeDeadHost, ObjectTypeSetting, ObjectTypeNginxConfig,
+		ObjectTypeConfigTemplate:
 		return true
 	}
 	return false

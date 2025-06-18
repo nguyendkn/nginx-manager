@@ -282,6 +282,16 @@ func (s *AuthService) RequireAdmin(userID uint) error {
 	return nil
 }
 
+// IsAdmin checks if user has admin role
+func (s *AuthService) IsAdmin(userID uint) bool {
+	var user models.User
+	if err := s.db.Where("id = ? AND deleted_at IS NULL", userID).First(&user).Error; err != nil {
+		return false
+	}
+
+	return user.IsAdmin()
+}
+
 // CanManageResource checks if user can manage a specific resource
 func (s *AuthService) CanManageResource(userID uint, resourceUserID uint) bool {
 	var user models.User

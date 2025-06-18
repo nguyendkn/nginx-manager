@@ -26,6 +26,8 @@ func SetupAPIRoutes(r *gin.Engine) {
 		setupCertificateRoutes(protected)
 		setupMonitoringRoutes(protected)
 		setupSettingsRoutes(protected)
+		setupNginxConfigRoutes(protected)
+		setupTemplateRoutes(protected)
 	}
 
 	// Setup admin routes (require admin role)
@@ -197,25 +199,43 @@ func setupAdminRoutes(rg *gin.RouterGroup) {
 		nginx.GET("/config", func(c *gin.Context) {
 			c.JSON(200, gin.H{"message": "Admin: Get nginx config - to be implemented"})
 		})
-
-		nginx.POST("/test", func(c *gin.Context) {
-			c.JSON(200, gin.H{"message": "Admin: Test nginx config - to be implemented"})
-		})
 	}
+}
 
-	// Database operations
-	database := rg.Group("/database")
+// setupNginxConfigRoutes sets up nginx configuration management routes
+func setupNginxConfigRoutes(rg *gin.RouterGroup) {
+	// Note: For now we'll use nil service, should be properly injected in the main server setup
+	configController := controllers.NewConfigController(nil)
+
+	configs := rg.Group("/nginx/configs")
 	{
-		database.POST("/migrate", func(c *gin.Context) {
-			c.JSON(200, gin.H{"message": "Admin: Run migrations - to be implemented"})
-		})
+		configs.GET("", configController.ListConfigs)
+		configs.POST("", configController.CreateConfig)
+		configs.GET("/:id", configController.GetConfig)
+		configs.PUT("/:id", configController.UpdateConfig)
+		configs.DELETE("/:id", configController.DeleteConfig)
+		configs.POST("/validate", configController.ValidateConfig)
+		configs.POST("/:id/deploy", configController.DeployConfig)
+		configs.GET("/:id/history", configController.GetConfigHistory)
+		configs.POST("/:id/backup", configController.CreateConfigBackup)
+		configs.POST("/:id/restore/:version", configController.RestoreConfigFromBackup)
+	}
+}
 
-		database.POST("/seed", func(c *gin.Context) {
-			c.JSON(200, gin.H{"message": "Admin: Seed database - to be implemented"})
-		})
+// setupTemplateRoutes sets up configuration template management routes
+func setupTemplateRoutes(rg *gin.RouterGroup) {
+	// Note: For now we'll use nil service, should be properly injected in the main server setup
+	templateController := controllers.NewTemplateController(nil)
 
-		database.GET("/backup", func(c *gin.Context) {
-			c.JSON(200, gin.H{"message": "Admin: Backup database - to be implemented"})
-		})
+	templates := rg.Group("/nginx/templates")
+	{
+		templates.GET("", templateController.ListTemplates)
+		templates.POST("", templateController.CreateTemplate)
+		templates.GET("/categories", templateController.GetCategories)
+		templates.POST("/init-builtin", templateController.InitializeBuiltInTemplates)
+		templates.GET("/:id", templateController.GetTemplate)
+		templates.PUT("/:id", templateController.UpdateTemplate)
+		templates.DELETE("/:id", templateController.DeleteTemplate)
+		templates.POST("/:id/render", templateController.RenderTemplate)
 	}
 }

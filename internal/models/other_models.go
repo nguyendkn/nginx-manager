@@ -71,11 +71,14 @@ func (DeadHost) TableName() string {
 // AuditLog represents an audit log entry
 type AuditLog struct {
 	BaseModel
-	UserID     uint        `json:"user_id" gorm:"not null;index"`
-	Action     AuditAction `json:"action" gorm:"size:50;not null"`
-	ObjectType ObjectType  `json:"object_type" gorm:"size:50;not null"`
-	ObjectID   uint        `json:"object_id" gorm:"not null;index"`
-	Meta       JSON        `json:"meta" gorm:"type:json"`
+	UserID      uint        `json:"user_id" gorm:"not null;index"`
+	Action      AuditAction `json:"action" gorm:"size:50;not null"`
+	ObjectType  ObjectType  `json:"object_type" gorm:"size:50;not null"`
+	ObjectID    uint        `json:"object_id" gorm:"not null;index"`
+	Description string      `json:"description" gorm:"type:text"`
+	IPAddress   string      `json:"ip_address" gorm:"size:45"`
+	UserAgent   string      `json:"user_agent" gorm:"type:text"`
+	Meta        JSON        `json:"meta" gorm:"type:json"`
 
 	// Relationships
 	User User `json:"user,omitempty" gorm:"foreignKey:UserID"`
