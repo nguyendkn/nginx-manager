@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"golang.org/x/crypto/bcrypt"
+	"gorm.io/gorm"
 )
 
 // User represents a user in the system
@@ -36,7 +37,7 @@ func (User) TableName() string {
 }
 
 // BeforeCreate hook to hash password
-func (u *User) BeforeCreate() error {
+func (u *User) BeforeCreate(tx *gorm.DB) error {
 	if u.Password != "" {
 		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(u.Password), bcrypt.DefaultCost)
 		if err != nil {
@@ -54,7 +55,7 @@ func (u *User) BeforeCreate() error {
 }
 
 // BeforeUpdate hook to hash password if changed
-func (u *User) BeforeUpdate() error {
+func (u *User) BeforeUpdate(tx *gorm.DB) error {
 	if u.Password != "" {
 		// Check if password is already hashed
 		if !u.IsPasswordHashed() {
