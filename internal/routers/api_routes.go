@@ -4,9 +4,23 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/nguyendkn/nginx-manager/internal/controllers"
 	"github.com/nguyendkn/nginx-manager/internal/middleware"
+	"github.com/nguyendkn/nginx-manager/internal/services"
 )
 
-// SetupAPIRoutes sets up all API routes with middleware
+// ServiceContainer holds all the initialized services
+type ServiceContainer struct {
+	AuthService         *services.AuthService
+	CertificateService  *services.CertificateService
+	MonitoringService   *services.MonitoringService
+	AnalyticsService    *services.AnalyticsService
+	NotificationService *services.NotificationService
+	ConfigService       *services.ConfigService
+	TemplateService     *services.TemplateService
+	AccessListService   *services.AccessListService
+	NginxService        *services.NginxService
+}
+
+// SetupAPIRoutes sets up all API routes with middleware (backward compatibility)
 func SetupAPIRoutes(r *gin.Engine) {
 	// Apply global rate limiting
 	r.Use(middleware.GeneralRateLimitMiddleware())
@@ -22,12 +36,47 @@ func SetupAPIRoutes(r *gin.Engine) {
 	protected.Use(middleware.AuthMiddleware())
 	{
 		setupUserRoutes(protected)
-		setupProxyHostRoutes(protected)
-		setupCertificateRoutes(protected)
-		setupMonitoringRoutes(protected)
+		setupProxyHostRoutes(protected, nil)
+		setupCertificateRoutes(protected, nil)
+		setupMonitoringRoutes(protected, nil)
 		setupSettingsRoutes(protected)
-		setupNginxConfigRoutes(protected)
-		setupTemplateRoutes(protected)
+		setupNginxConfigRoutes(protected, nil)
+		setupTemplateRoutes(protected, nil)
+		setupAnalyticsRoutes(protected, nil)
+	}
+
+	// Setup admin routes (require admin role)
+	admin := v1.Group("/admin")
+	admin.Use(middleware.AuthMiddleware())
+	admin.Use(middleware.AdminOnlyMiddleware())
+	{
+		setupAdminRoutes(admin)
+	}
+}
+
+// SetupAPIRoutesWithServices sets up all API routes with proper service injection
+func SetupAPIRoutesWithServices(r *gin.Engine, services *ServiceContainer) {
+	// Apply global rate limiting
+	r.Use(middleware.GeneralRateLimitMiddleware())
+
+	// API v1 group
+	v1 := r.Group("/api/v1")
+
+	// Setup auth routes
+	setupAuthRoutes(v1)
+
+	// Setup protected routes (require authentication)
+	protected := v1.Group("")
+	protected.Use(middleware.AuthMiddleware())
+	{
+		setupUserRoutes(protected)
+		setupProxyHostRoutes(protected, nil)
+		setupCertificateRoutes(protected, services.CertificateService)
+		setupMonitoringRoutes(protected, services.MonitoringService)
+		setupSettingsRoutes(protected)
+		setupNginxConfigRoutes(protected, services.ConfigService)
+		setupTemplateRoutes(protected, services.TemplateService)
+		setupAnalyticsRoutes(protected, services.AnalyticsService)
 	}
 
 	// Setup admin routes (require admin role)
@@ -84,8 +133,8 @@ func setupUserRoutes(rg *gin.RouterGroup) {
 }
 
 // setupProxyHostRoutes sets up proxy host management routes
-func setupProxyHostRoutes(rg *gin.RouterGroup) {
-	proxyHostController := controllers.NewProxyHostController(nil) // Pass nil for now, will inject service later
+func setupProxyHostRoutes(rg *gin.RouterGroup, service interface{}) {
+	proxyHostController := controllers.NewProxyHostController(nil)
 
 	proxyHosts := rg.Group("/proxy-hosts")
 	{
@@ -100,9 +149,8 @@ func setupProxyHostRoutes(rg *gin.RouterGroup) {
 }
 
 // setupCertificateRoutes sets up certificate management routes
-func setupCertificateRoutes(rg *gin.RouterGroup) {
-	// Note: For now we'll use nil service, should be properly injected in the main server setup
-	certificateController := controllers.NewCertificateController(nil)
+func setupCertificateRoutes(rg *gin.RouterGroup, service *services.CertificateService) {
+	certificateController := controllers.NewCertificateController(service)
 
 	certificates := rg.Group("/certificates")
 	{
@@ -119,9 +167,8 @@ func setupCertificateRoutes(rg *gin.RouterGroup) {
 }
 
 // setupMonitoringRoutes sets up monitoring and real-time metrics routes
-func setupMonitoringRoutes(rg *gin.RouterGroup) {
-	// Note: For now we'll use nil service, should be properly injected in the main server setup
-	monitoringController := controllers.NewMonitoringController(nil)
+func setupMonitoringRoutes(rg *gin.RouterGroup, service *services.MonitoringService) {
+	monitoringController := controllers.NewMonitoringController(service)
 
 	monitoring := rg.Group("/monitoring")
 	{
@@ -203,9 +250,8 @@ func setupAdminRoutes(rg *gin.RouterGroup) {
 }
 
 // setupNginxConfigRoutes sets up nginx configuration management routes
-func setupNginxConfigRoutes(rg *gin.RouterGroup) {
-	// Note: For now we'll use nil service, should be properly injected in the main server setup
-	configController := controllers.NewConfigController(nil)
+func setupNginxConfigRoutes(rg *gin.RouterGroup, service *services.ConfigService) {
+	configController := controllers.NewConfigController(service)
 
 	configs := rg.Group("/nginx/configs")
 	{
@@ -223,9 +269,8 @@ func setupNginxConfigRoutes(rg *gin.RouterGroup) {
 }
 
 // setupTemplateRoutes sets up configuration template management routes
-func setupTemplateRoutes(rg *gin.RouterGroup) {
-	// Note: For now we'll use nil service, should be properly injected in the main server setup
-	templateController := controllers.NewTemplateController(nil)
+func setupTemplateRoutes(rg *gin.RouterGroup, service *services.TemplateService) {
+	templateController := controllers.NewTemplateController(service)
 
 	templates := rg.Group("/nginx/templates")
 	{
@@ -237,5 +282,52 @@ func setupTemplateRoutes(rg *gin.RouterGroup) {
 		templates.PUT("/:id", templateController.UpdateTemplate)
 		templates.DELETE("/:id", templateController.DeleteTemplate)
 		templates.POST("/:id/render", templateController.RenderTemplate)
+	}
+}
+
+// setupAnalyticsRoutes sets up analytics and monitoring routes
+func setupAnalyticsRoutes(rg *gin.RouterGroup, service *services.AnalyticsService) {
+	analyticsController := controllers.NewAnalyticsController(service)
+
+	analytics := rg.Group("/analytics")
+	{
+		// Historical Metrics Routes
+		metricsGroup := analytics.Group("/metrics")
+		{
+			metricsGroup.POST("/query", analyticsController.QueryMetrics)
+			metricsGroup.GET("/:type/:name", analyticsController.GetHistoricalMetrics)
+		}
+
+		// System Analytics Routes
+		systemGroup := analytics.Group("/system")
+		{
+			systemGroup.GET("/summary", analyticsController.GetSystemMetricsSummary)
+		}
+
+		// Alert Management Routes
+		alertsGroup := analytics.Group("/alerts")
+		{
+			// Alert Rules
+			rulesGroup := alertsGroup.Group("/rules")
+			{
+				rulesGroup.POST("", analyticsController.CreateAlertRule)
+				rulesGroup.GET("", analyticsController.GetAlertRules)
+				rulesGroup.PUT("/:id", analyticsController.UpdateAlertRule)
+				rulesGroup.DELETE("/:id", analyticsController.DeleteAlertRule)
+			}
+
+			// Alert Instances
+			alertsGroup.GET("/instances", analyticsController.GetAlertInstances)
+		}
+
+		// Dashboard Management Routes
+		dashboardsGroup := analytics.Group("/dashboards")
+		{
+			dashboardsGroup.POST("", analyticsController.CreateDashboard)
+			dashboardsGroup.GET("", analyticsController.GetDashboards)
+			dashboardsGroup.GET("/:id", analyticsController.GetDashboard)
+			dashboardsGroup.PUT("/:id", analyticsController.UpdateDashboard)
+			dashboardsGroup.DELETE("/:id", analyticsController.DeleteDashboard)
+		}
 	}
 }

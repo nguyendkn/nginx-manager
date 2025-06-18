@@ -7,6 +7,7 @@ export default [
   route("proxy-hosts", "routes/proxy-hosts.tsx"),
   route("certificates", "routes/certificates.tsx"),
   route("monitoring", "routes/monitoring.tsx"),
+  route("analytics", "routes/analytics.tsx"),
   route("nginx-configs", "routes/nginx-configs.tsx"),
   route("nginx-configs/new", "routes/nginx-configs/new.tsx"),
   route("nginx-configs/:id", "routes/nginx-configs/edit.tsx"),
