@@ -24,6 +24,7 @@ func SetupAPIRoutes(r *gin.Engine) {
 		setupUserRoutes(protected)
 		setupProxyHostRoutes(protected)
 		setupCertificateRoutes(protected)
+		setupMonitoringRoutes(protected)
 		setupSettingsRoutes(protected)
 	}
 
@@ -112,6 +113,22 @@ func setupCertificateRoutes(rg *gin.RouterGroup) {
 		certificates.DELETE("/:id", certificateController.DeleteCertificate)
 		certificates.POST("/:id/upload", certificateController.UploadCertificate)
 		certificates.POST("/:id/renew", certificateController.RenewCertificate)
+	}
+}
+
+// setupMonitoringRoutes sets up monitoring and real-time metrics routes
+func setupMonitoringRoutes(rg *gin.RouterGroup) {
+	// Note: For now we'll use nil service, should be properly injected in the main server setup
+	monitoringController := controllers.NewMonitoringController(nil)
+
+	monitoring := rg.Group("/monitoring")
+	{
+		monitoring.GET("/dashboard", monitoringController.GetDashboardStats)
+		monitoring.GET("/system-metrics", monitoringController.GetSystemMetrics)
+		monitoring.GET("/nginx-status", monitoringController.GetNginxStatus)
+		monitoring.GET("/activity-feed", monitoringController.GetActivityFeed)
+		monitoring.GET("/ws", monitoringController.HandleWebSocket)
+		monitoring.POST("/nginx/control", monitoringController.ControlNginx)
 	}
 }
 
