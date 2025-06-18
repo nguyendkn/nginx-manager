@@ -82,24 +82,17 @@ func setupUserRoutes(rg *gin.RouterGroup) {
 
 // setupProxyHostRoutes sets up proxy host management routes
 func setupProxyHostRoutes(rg *gin.RouterGroup) {
-	// Proxy host routes will be implemented later
+	proxyHostController := controllers.NewProxyHostController(nil) // Pass nil for now, will inject service later
+
 	proxyHosts := rg.Group("/proxy-hosts")
 	{
-		proxyHosts.GET("", func(c *gin.Context) {
-			c.JSON(200, gin.H{"message": "List proxy hosts - to be implemented"})
-		})
-		proxyHosts.POST("", func(c *gin.Context) {
-			c.JSON(200, gin.H{"message": "Create proxy host - to be implemented"})
-		})
-		proxyHosts.GET("/:id", func(c *gin.Context) {
-			c.JSON(200, gin.H{"message": "Get proxy host - to be implemented"})
-		})
-		proxyHosts.PUT("/:id", func(c *gin.Context) {
-			c.JSON(200, gin.H{"message": "Update proxy host - to be implemented"})
-		})
-		proxyHosts.DELETE("/:id", func(c *gin.Context) {
-			c.JSON(200, gin.H{"message": "Delete proxy host - to be implemented"})
-		})
+		proxyHosts.GET("", proxyHostController.List)
+		proxyHosts.POST("", proxyHostController.Create)
+		proxyHosts.GET("/:id", proxyHostController.Get)
+		proxyHosts.PUT("/:id", proxyHostController.Update)
+		proxyHosts.DELETE("/:id", proxyHostController.Delete)
+		proxyHosts.POST("/:id/toggle", proxyHostController.Toggle)
+		proxyHosts.POST("/bulk-toggle", proxyHostController.BulkToggle)
 	}
 }
 

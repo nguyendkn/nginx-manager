@@ -4,4 +4,5 @@ export default [
   index("routes/home.tsx"),
   route("login", "routes/login.tsx"),
   route("dashboard", "routes/dashboard.tsx"),
+  route("proxy-hosts", "routes/proxy-hosts.tsx"),
 ] satisfies RouteConfig;

@@ -213,6 +213,21 @@ func Int64(key string, val int64) zap.Field {
 	return zap.Int64(key, val)
 }
 
+// Uint creates a uint field
+func Uint(key string, val uint) zap.Field {
+	return zap.Uint(key, val)
+}
+
+// Uint32 creates a uint32 field
+func Uint32(key string, val uint32) zap.Field {
+	return zap.Uint32(key, val)
+}
+
+// Uint64 creates a uint64 field
+func Uint64(key string, val uint64) zap.Field {
+	return zap.Uint64(key, val)
+}
+
 // Float64 creates a float64 field
 func Float64(key string, val float64) zap.Field {
 	return zap.Float64(key, val)

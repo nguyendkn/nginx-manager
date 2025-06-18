@@ -1,9 +1,21 @@
-import { useAuth, useRequireAuth } from '../contexts/AuthContext';
-import { Button } from '../components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
-import { Badge } from '../components/ui/badge';
-import { Avatar, AvatarFallback, AvatarImage } from '../components/ui/avatar';
-import { LogOut, User, Shield, Settings } from 'lucide-react';
+import { useAuth } from '~/contexts/AuthContext';
+import { Button } from '~/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '~/components/ui/card';
+import { Badge } from '~/components/ui/badge';
+import { Avatar, AvatarFallback } from '~/components/ui/avatar';
+import {
+  User,
+  Shield,
+  Activity,
+  Server,
+  Globe,
+  Lock,
+  Settings,
+  Plus,
+  ArrowRight,
+  LogOut
+} from 'lucide-react';
+import { Link } from 'react-router';
 
 export function meta() {
   return [
@@ -13,7 +25,7 @@ export function meta() {
 }
 
 export default function Dashboard() {
-  const { user, logout, isLoading } = useRequireAuth();
+  const { user, logout, isLoading } = useAuth();
 
   if (isLoading) {
     return (
@@ -34,6 +46,12 @@ export default function Dashboard() {
     }
   };
 
+  const userInitials = user?.name
+    .split(' ')
+    .map(n => n[0])
+    .join('')
+    .toUpperCase();
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -48,9 +66,8 @@ export default function Dashboard() {
             <div className="flex items-center space-x-4">
               <div className="flex items-center space-x-2">
                 <Avatar className="h-8 w-8">
-                  <AvatarImage src={user?.avatar} />
                   <AvatarFallback>
-                    {user?.name?.charAt(0) || user?.email?.charAt(0) || '?'}
+                    {userInitials}
                   </AvatarFallback>
                 </Avatar>
                 <div className="hidden md:block">
@@ -144,20 +161,64 @@ export default function Dashboard() {
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <Button variant="outline" className="h-20 flex-col space-y-2">
-                  <div className="text-lg">🔧</div>
-                  <span>Proxy Hosts</span>
-                </Button>
+                <Card className="hover:shadow-md transition-shadow cursor-pointer">
+                  <Link to="/proxy-hosts" className="block">
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                      <CardTitle className="text-sm font-medium">
+                        Proxy Hosts
+                      </CardTitle>
+                      <Globe className="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                      <div className="text-2xl font-bold">0</div>
+                      <p className="text-xs text-muted-foreground">
+                        Active proxy configurations
+                      </p>
+                      <div className="flex items-center mt-2">
+                        <span className="text-sm text-blue-600">Manage hosts</span>
+                        <ArrowRight className="h-3 w-3 ml-1 text-blue-600" />
+                      </div>
+                    </CardContent>
+                  </Link>
+                </Card>
 
-                <Button variant="outline" className="h-20 flex-col space-y-2">
-                  <div className="text-lg">🔒</div>
-                  <span>SSL Certificates</span>
-                </Button>
+                <Card className="hover:shadow-md transition-shadow cursor-pointer">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">
+                      SSL Certificates
+                    </CardTitle>
+                    <Lock className="h-4 w-4 text-muted-foreground" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold">0</div>
+                    <p className="text-xs text-muted-foreground">
+                      SSL certificates managed
+                    </p>
+                    <div className="flex items-center mt-2">
+                      <span className="text-sm text-green-600">View certificates</span>
+                      <ArrowRight className="h-3 w-3 ml-1 text-green-600" />
+                    </div>
+                  </CardContent>
+                </Card>
 
-                <Button variant="outline" className="h-20 flex-col space-y-2">
-                  <div className="text-lg">👥</div>
-                  <span>Access Lists</span>
-                </Button>
+                <Card className="hover:shadow-md transition-shadow cursor-pointer">
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">
+                      Access Lists
+                    </CardTitle>
+                    <Shield className="h-4 w-4 text-muted-foreground" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold">0</div>
+                    <p className="text-xs text-muted-foreground">
+                      Access control rules
+                    </p>
+                    <div className="flex items-center mt-2">
+                      <span className="text-sm text-orange-600">Manage access</span>
+                      <ArrowRight className="h-3 w-3 ml-1 text-orange-600" />
+                    </div>
+                  </CardContent>
+                </Card>
               </div>
             </CardContent>
           </Card>
