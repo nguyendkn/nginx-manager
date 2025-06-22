@@ -1,11 +1,3 @@
-import { redirect } from "react-router";
-import type { Route } from "./+types/new";
-
-export async function action({ request }: Route.ActionArgs) {
-  // This will be implemented when we build the nginx templates functionality
-  throw new Error("Not implemented yet");
-}
-
 export default function NewNginxTemplate() {
   return (
     <div className="container mx-auto py-8">

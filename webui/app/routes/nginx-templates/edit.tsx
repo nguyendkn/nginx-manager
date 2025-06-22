@@ -1,24 +1,31 @@
-import { redirect } from "react-router";
-import type { Route } from "./+types/edit";
+import { useParams } from "react-router";
+import { useState, useEffect } from "react";
 
-export async function loader({ params }: Route.LoaderArgs) {
-  // This will be implemented when we build the nginx templates functionality
-  return {
-    template: {
-      id: params.id,
-      name: "Sample Template",
-      content: "# This feature is not implemented yet"
+interface Template {
+  id: string;
+  name: string;
+  content: string;
+}
+
+export default function EditNginxTemplate() {
+  const { id } = useParams();
+  const [template, setTemplate] = useState<Template>({
+    id: id || '',
+    name: 'Unknown',
+    content: ''
+  });
+
+  useEffect(() => {
+    // This will be implemented when we build the nginx templates functionality
+    // For now, just set sample data
+    if (id) {
+      setTemplate({
+        id,
+        name: "Sample Template",
+        content: "# This feature is not implemented yet"
+      });
     }
-  };
-}
-
-export async function action({ request, params }: Route.ActionArgs) {
-  // This will be implemented when we build the nginx templates functionality
-  throw new Error("Not implemented yet");
-}
-
-export default function EditNginxTemplate({ loaderData }: Route.ComponentProps) {
-  const { template } = loaderData || { template: { id: '', name: 'Unknown', content: '' } };
+  }, [id]);
 
   return (
     <div className="container mx-auto py-8">

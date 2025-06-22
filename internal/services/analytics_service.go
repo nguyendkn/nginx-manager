@@ -533,7 +533,7 @@ func (as *AnalyticsService) checkAlerts(metric *models.HistoricalMetric) {
 				ThresholdValue: rule.Threshold,
 				Message: fmt.Sprintf("Alert '%s' triggered: %s value %.2f %s threshold %.2f",
 					rule.Name, metric.MetricName, metric.Value, rule.Condition, rule.Threshold),
-				Context: map[string]interface{}{
+				Context: models.JSON{
 					"metric_type": metric.MetricType,
 					"metric_name": metric.MetricName,
 					"source":      metric.Source,
@@ -610,7 +610,8 @@ func (as *AnalyticsService) createAggregation(metric *models.HistoricalMetric, t
 	err := as.db.Where("metric_type = ? AND metric_name = ? AND time_window = ? AND timestamp = ?",
 		metric.MetricType, metric.MetricName, timeWindow, windowStart).First(&existingAgg).Error
 
-	if err == gorm.ErrRecordNotFound {
+	switch err {
+	case gorm.ErrRecordNotFound:
 		// Create new aggregation
 		agg := &models.MetricAggregation{
 			MetricType: metric.MetricType,
@@ -627,7 +628,7 @@ func (as *AnalyticsService) createAggregation(metric *models.HistoricalMetric, t
 		agg.SetRetention(retentionDuration)
 
 		as.db.Create(agg)
-	} else if err == nil {
+	case nil:
 		// Update existing aggregation
 		as.calculateAggregationValues(&existingAgg, windowStart, windowEnd)
 		as.db.Save(&existingAgg)

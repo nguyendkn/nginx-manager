@@ -1,0 +1,15 @@
+{
+    "recommendations": [
+        "golang.go",
+        "ms-vscode.vscode-json",
+        "redhat.vscode-yaml",
+        "ms-vscode.makefile-tools",
+        "streetsidesoftware.code-spell-checker",
+        "ms-vscode.test-adapter-converter",
+        "hbenl.vscode-test-explorer",
+        "formulahendry.code-runner",
+        "ms-vscode.vscode-typescript-next",
+        "bradlc.vscode-tailwindcss",
+        "augment.vscode-augment"
+    ]
+}

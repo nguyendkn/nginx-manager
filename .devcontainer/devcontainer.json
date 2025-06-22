@@ -1,0 +1,102 @@
+{
+  "name": "Nginx Manager Development",
+  "dockerComposeFile": "docker-compose.yml",
+  "service": "nginx-manager",
+  "workspaceFolder": "/workspace",
+  // Features to install in the container
+  "features": {
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {
+      "version": "latest",
+      "enableNonRootDocker": "true"
+    },
+    "ghcr.io/devcontainers/features/git:1": {
+      "version": "latest",
+      "installFromSource": false
+    }
+  },
+  // Configure tool-specific properties
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        // Go extensions
+        "golang.go",
+        "ms-vscode.vscode-go",
+        // JavaScript/TypeScript/React extensions
+        "ms-vscode.vscode-typescript-next",
+        "bradlc.vscode-tailwindcss",
+        "esbenp.prettier-vscode",
+        "ms-vscode.vscode-eslint",
+        // Docker extensions
+        "ms-azuretools.vscode-docker",
+        // Database extensions
+        "ms-mssql.mssql",
+        "ckolkman.vscode-postgres",
+        // General development
+        "ms-vscode.vscode-json",
+        "redhat.vscode-yaml",
+        "ms-vscode.vscode-markdown",
+        "ms-vscode.vscode-git-graph",
+        "eamodio.gitlens",
+        // API development
+        "humao.rest-client",
+        "ms-vscode.vscode-thunder-client"
+      ],
+      "settings": {
+        "go.toolsManagement.checkForUpdates": "local",
+        "go.useLanguageServer": true,
+        "go.gopath": "/go",
+        "go.goroot": "/usr/local/go",
+        "editor.formatOnSave": true,
+        "editor.codeActionsOnSave": {
+          "source.organizeImports": "explicit"
+        },
+        "typescript.preferences.importModuleSpecifier": "relative",
+        "eslint.workingDirectories": [
+          "webui"
+        ],
+        "prettier.configPath": "webui/.prettierrc"
+      }
+    }
+  },
+  // Use 'forwardPorts' to make a list of ports inside the container available locally
+  "forwardPorts": [
+    8080, // Go backend
+    5173, // Vite dev server
+    5432, // PostgreSQL
+    6379 // Redis (if used)
+  ],
+  // Port attributes
+  "portsAttributes": {
+    "8080": {
+      "label": "Go Backend API",
+      "onAutoForward": "notify"
+    },
+    "5173": {
+      "label": "React Frontend",
+      "onAutoForward": "openBrowser"
+    },
+    "5432": {
+      "label": "PostgreSQL Database",
+      "onAutoForward": "silent"
+    },
+    "6379": {
+      "label": "Redis Cache",
+      "onAutoForward": "silent"
+    }
+  },
+  // Use 'postCreateCommand' to run commands after the container is created
+  "postCreateCommand": "bash .devcontainer/setup.sh",
+  // Configure container user
+  "remoteUser": "root",
+  // Mount the local file system
+  "mounts": [
+    "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=cached"
+  ],
+  // Environment variables
+  "containerEnv": {
+    "GO111MODULE": "on",
+    "GOPROXY": "https://proxy.golang.org,direct",
+    "GOSUMDB": "sum.golang.org",
+    "NODE_ENV": "development"
+  }
+}

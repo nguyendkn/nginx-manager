@@ -316,19 +316,6 @@ func (ns *NotificationService) parseConfig(config map[string]interface{}, target
 	return json.Unmarshal(data, target)
 }
 
-func (ns *NotificationService) getSeverityColor(severity string) string {
-	switch severity {
-	case "critical":
-		return "danger"
-	case "warning":
-		return "warning"
-	case "info":
-		return "good"
-	default:
-		return "warning"
-	}
-}
-
 func (ns *NotificationService) getTeamsSeverityColor(severity string) string {
 	switch severity {
 	case "critical":

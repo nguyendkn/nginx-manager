@@ -28,9 +28,14 @@ interface AuthProviderProps {
 export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-  // Check if user is authenticated based on token
-  const isAuthenticated = TokenManager.isAuthenticated() && user !== null;
+  // Update authentication status when user or token changes
+  useEffect(() => {
+    const hasToken = TokenManager.isAuthenticated();
+    const hasUser = user !== null;
+    setIsAuthenticated(hasToken && hasUser);
+  }, [user]);
 
   // Initialize authentication state
   useEffect(() => {

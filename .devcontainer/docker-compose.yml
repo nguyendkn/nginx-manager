@@ -1,0 +1,79 @@
+version: '3.8'
+
+services:
+  nginx-manager:
+    build:
+      context: ..
+      dockerfile: .devcontainer/Dockerfile
+    container_name: nginx-manager-dev
+    working_dir: /workspace
+    command: sleep infinity
+    environment:
+      - DEBIAN_FRONTEND=noninteractive
+      - GO111MODULE=on
+      - GOPROXY=https://proxy.golang.org,direct
+      - NODE_ENV=development
+      - DATABASE_URL=postgres://nginx_user:nginx_password@postgres:5432/nginx_manager?sslmode=disable
+      - REDIS_URL=redis://redis:6379
+    volumes:
+      - ..:/workspace:cached
+      - go-modules:/go/pkg/mod
+      - node-modules:/workspace/webui/node_modules
+    networks:
+      - nginx-network
+    depends_on:
+      - postgres
+      - redis
+    ports:
+      - "8080:8080"   # Go backend
+      - "5173:5173"   # Vite dev server
+    privileged: true
+    shm_size: 2gb
+    ipc: host
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: nginx-manager-postgres
+    environment:
+      - POSTGRES_DB=nginx_manager
+      - POSTGRES_USER=nginx_user
+      - POSTGRES_PASSWORD=nginx_password
+      - POSTGRES_INITDB_ARGS=--encoding=UTF-8 --lc-collate=C --lc-ctype=C
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql:ro
+    networks:
+      - nginx-network
+    ports:
+      - "55432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U nginx_user -d nginx_manager"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: nginx-manager-redis
+    command: redis-server --appendonly yes
+    volumes:
+      - redis-data:/data
+    networks:
+      - nginx-network
+    ports:
+      - "56379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres-data:
+  redis-data:
+  go-modules:
+  node-modules:
+
+networks:
+  nginx-network:
+    driver: bridge

@@ -1,26 +1,20 @@
 import { useAuth } from '~/contexts/AuthContext';
+import { ProtectedLayout } from '~/layouts/protected-layout';
 import { Button } from '~/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '~/components/ui/card';
 import { Badge } from '~/components/ui/badge';
-import { Avatar, AvatarFallback } from '~/components/ui/avatar';
 import {
-  User,
-  Shield,
   Activity,
   Server,
   Globe,
-  Lock,
+  Shield,
   Settings,
-  Plus,
-  ArrowRight,
-  LogOut,
   TrendingUp,
   Clock,
   AlertTriangle,
-  CheckCircle,
   MemoryStick
 } from 'lucide-react';
-import { Link, useLoaderData } from 'react-router';
+import { Link } from 'react-router';
 import { useEffect, useState } from 'react';
 import { dashboardApi } from '~/services/api/dashboard';
 import { Skeleton } from '~/components/ui/skeleton';
@@ -62,24 +56,36 @@ interface DashboardData {
   };
 }
 
-export async function loader() {
-  try {
-    const data = await dashboardApi.getDashboardStats();
-    return { data, error: null };
-  } catch (error) {
-    return { data: null, error: error instanceof Error ? error.message : 'Failed to load dashboard data' };
-  }
-}
+
 
 export default function Dashboard() {
   const { user, logout, isLoading } = useAuth();
-  const { data: initialData, error } = useLoaderData<typeof loader>();
-  const [data, setData] = useState<DashboardData | null>(initialData);
-  const [isLoadingState, setIsLoadingState] = useState(!initialData);
+  const [data, setData] = useState<DashboardData | null>(null);
+  const [isLoadingState, setIsLoadingState] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [lastUpdated, setLastUpdated] = useState(new Date());
 
-  // Auto-refresh dashboard data every 30 seconds
+  // Initial data load and auto-refresh dashboard data every 30 seconds
   useEffect(() => {
+    const loadData = async () => {
+      try {
+        setIsLoadingState(true);
+        const newData = await dashboardApi.getDashboardStats();
+        setData(newData);
+        setError(null);
+        setLastUpdated(new Date());
+      } catch (error) {
+        console.error('Failed to load dashboard:', error);
+        setError(error instanceof Error ? error.message : 'Failed to load dashboard data');
+      } finally {
+        setIsLoadingState(false);
+      }
+    };
+
+    // Load initial data
+    loadData();
+
+    // Set up auto-refresh
     const interval = setInterval(async () => {
       try {
         const newData = await dashboardApi.getDashboardStats();
@@ -146,7 +152,7 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
+    <ProtectedLayout>
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
@@ -381,6 +387,6 @@ export default function Dashboard() {
           ))}
         </div>
       )}
-    </div>
+    </ProtectedLayout>
   );
 }

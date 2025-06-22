@@ -37,6 +37,7 @@ nginx-manager
 cmd/server/server
 cmd/cli/cli
 cmd/cronjob/cronjob
+.pnpm-store
 
 # Database files
 *.db
@@ -74,7 +75,6 @@ config/production.json
 config/local.json
 
 # IDE and editor files
-.vscode/
 .idea/
 *.swp
 *.swo

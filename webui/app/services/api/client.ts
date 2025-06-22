@@ -30,30 +30,65 @@ export interface ApiErrorResponse {
   timestamp: string;
 }
 
+// Safe localStorage wrapper for SSR compatibility
+class SafeStorage {
+  private static isClient(): boolean {
+    return typeof window !== 'undefined' && typeof localStorage !== 'undefined';
+  }
+
+  static getItem(key: string): string | null {
+    if (!this.isClient()) return null;
+    try {
+      return localStorage.getItem(key);
+    } catch (error) {
+      console.warn('Failed to get item from localStorage:', error);
+      return null;
+    }
+  }
+
+  static setItem(key: string, value: string): void {
+    if (!this.isClient()) return;
+    try {
+      localStorage.setItem(key, value);
+    } catch (error) {
+      console.warn('Failed to set item in localStorage:', error);
+    }
+  }
+
+  static removeItem(key: string): void {
+    if (!this.isClient()) return;
+    try {
+      localStorage.removeItem(key);
+    } catch (error) {
+      console.warn('Failed to remove item from localStorage:', error);
+    }
+  }
+}
+
 // Token management
 class TokenManager {
   private static readonly ACCESS_TOKEN_KEY = 'access_token';
   private static readonly REFRESH_TOKEN_KEY = 'refresh_token';
 
   static getAccessToken(): string | null {
-    return localStorage.getItem(this.ACCESS_TOKEN_KEY);
+    return SafeStorage.getItem(this.ACCESS_TOKEN_KEY);
   }
 
   static setAccessToken(token: string): void {
-    localStorage.setItem(this.ACCESS_TOKEN_KEY, token);
+    SafeStorage.setItem(this.ACCESS_TOKEN_KEY, token);
   }
 
   static getRefreshToken(): string | null {
-    return localStorage.getItem(this.REFRESH_TOKEN_KEY);
+    return SafeStorage.getItem(this.REFRESH_TOKEN_KEY);
   }
 
   static setRefreshToken(token: string): void {
-    localStorage.setItem(this.REFRESH_TOKEN_KEY, token);
+    SafeStorage.setItem(this.REFRESH_TOKEN_KEY, token);
   }
 
   static clearTokens(): void {
-    localStorage.removeItem(this.ACCESS_TOKEN_KEY);
-    localStorage.removeItem(this.REFRESH_TOKEN_KEY);
+    SafeStorage.removeItem(this.ACCESS_TOKEN_KEY);
+    SafeStorage.removeItem(this.REFRESH_TOKEN_KEY);
   }
 
   static isAuthenticated(): boolean {
